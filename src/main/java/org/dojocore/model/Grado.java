@@ -20,6 +20,9 @@ import jakarta.persistence.*;
         @Column(nullable = false, length = 30)
         private String color;
 
+        @Column(nullable = false, length = 20)
+        private String etapa;
+
         @Column(nullable = false)
         private Integer orden;
 
@@ -47,6 +50,8 @@ import jakarta.persistence.*;
     public void setColor(String color) {
         this.color = color;
     }
+    public String getEtapa() { return etapa; }
+    public void setEtapa(String etapa) { this.etapa = etapa; }
     public Integer getOrden() {
         return orden;
     }

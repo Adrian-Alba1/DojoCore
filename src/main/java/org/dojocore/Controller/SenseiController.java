@@ -1,42 +1,36 @@
 package org.dojocore.Controller;
 
 import jakarta.validation.Valid;
-import org.dojocore.Dto.GradoDto;
-import org.dojocore.Service.GradoService;
+import org.dojocore.Dto.SenseiDto;
+import org.dojocore.Service.SenseiService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/grados")
-public class GradoController {
+@RequestMapping("/api/senseis")
+public class SenseiController {
 
-    private final GradoService service;
+    private final SenseiService service;
 
-    public GradoController(GradoService service) {
+    public SenseiController(SenseiService service) {
         this.service = service;
     }
 
     @GetMapping
-    public List<GradoDto> listar() {
+    public List<SenseiDto> listar() {
         return service.listar();
     }
 
     @GetMapping("/{id}")
-    public GradoDto obtener(@PathVariable Integer id) {
+    public SenseiDto obtener(@PathVariable Integer id) {
         return service.obtener(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public GradoDto crear(@Valid @RequestBody GradoDto dto) {
+    public SenseiDto crear(@Valid @RequestBody SenseiDto dto) {
         return service.crear(dto);
-    }
-
-    @PutMapping("/{id}")
-    public GradoDto actualizar(@PathVariable Integer id, @Valid @RequestBody GradoDto dto) {
-        return service.actualizar(id, dto);
     }
 
     @DeleteMapping("/{id}")
@@ -45,5 +39,3 @@ public class GradoController {
         service.eliminar(id);
     }
 }
-
-
