@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional(readOnly = true)
@@ -28,8 +29,9 @@ public class AlumnoService {
         this.senseiRepo = senseiRepo;
     }
 
-    public List<AlumnoDto> listar() {
-        return repo.findAll().stream().map(this::toDto).toList();
+    public List<AlumnoDto> listar(boolean incluirInactivos) {
+        List<Alumno> alumnos = incluirInactivos ? repo.findAll() : repo.findByPersonaActivo(true);
+        return alumnos.stream().map(this::toDto).toList();
     }
 
     public AlumnoDto obtener(Integer id) {
@@ -40,23 +42,28 @@ public class AlumnoService {
     @Transactional
     public AlumnoDto crear(AlumnoDto dto) {
         Persona persona = personaRepo.findById(dto.idPersona()).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.BAD_REQUEST, "Persona No encontrada: " + dto.idPersona()));
+                new ResponseStatusException(HttpStatus.BAD_REQUEST, "Persona no existe: " + dto.idPersona()));
+        if (!Boolean.TRUE.equals(persona.getActivo())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La persona está inactiva: " + persona.getId());
+        }
         if (repo.existsById(persona.getId())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Esta persona ya es un Alumno");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Esa persona ya es alumno");
         }
         Alumno a = new Alumno();
         a.setPersona(persona);
         a.setFechaIngreso(dto.fechaIngreso());
         a.setSenseiPrincipal(resolversensei(dto.idSenseiPrincipal()));
-        return toDto(a);
+        return toDto(repo.save(a));
     }
-    //
 
     @Transactional
     public AlumnoDto actualizar(Integer id, AlumnoDto dto){
         Alumno a = buscar(id);
         a.setFechaIngreso(dto.fechaIngreso());
-        a.setSenseiPrincipal(resolversensei(dto.idSenseiPrincipal()));
+        Integer idActual = a.getSenseiPrincipal() != null ? a.getSenseiPrincipal().getId() : null;
+        if (!Objects.equals(idActual, dto.idSenseiPrincipal())) {
+            a.setSenseiPrincipal(resolversensei(dto.idSenseiPrincipal()));
+        }
         return toDto(a);
     }
 
@@ -71,11 +78,15 @@ public class AlumnoService {
     }
 
     private Sensei resolversensei(Integer idSensei){
-        if (idSensei == null){
+        if (idSensei == null) {
             return null;
         }
-        return senseiRepo.findById(idSensei).orElseThrow(()->
-                new ResponseStatusException(HttpStatus.BAD_REQUEST, "El Sensei no existe: "+idSensei));
+        Sensei sensei = senseiRepo.findById(idSensei).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sensei no existe: " + idSensei));
+        if (!Boolean.TRUE.equals(sensei.getPersona().getActivo())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El sensei está inactivo: " + idSensei);
+        }
+        return sensei;
     }
 
     private AlumnoDto toDto(Alumno a){

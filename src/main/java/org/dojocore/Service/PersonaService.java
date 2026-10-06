@@ -53,7 +53,7 @@ public class PersonaService {
 
     @Transactional
     public void eliminar(Integer id) {
-        repo.delete(buscar(id));
+        buscar(id).setActivo(false);
     }
 
     private Persona buscar(Integer id) {

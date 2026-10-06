@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.List;
 
 @Service
@@ -24,19 +23,24 @@ public class SenseiService {
         this.personaRepo = personaRepo;
     }
 
-    public List<SenseiDto> listar() {
-        return repo.findAll().stream().map(this::toDto).toList();
+    // Solo muestra los activos
+    public List<SenseiDto> listar(boolean incluirInactivos) {
+        List<Sensei> senseis = incluirInactivos ? repo.findAll() : repo.findByPersonaActivo(true);
+        return senseis.stream().map(this::toDto).toList();
     }
 
     public SenseiDto obtener(Integer id) {
         return toDto(buscar(id));
     }
 
-    /** Convierte una persona existente en sensei. */
+    //Convierte una persona existente en sensei.
     @Transactional
     public SenseiDto crear(SenseiDto dto) {
         Persona persona = personaRepo.findById(dto.idPersona()).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.BAD_REQUEST, "Persona no existe: " + dto.idPersona()));
+        if (!Boolean.TRUE.equals(persona.getActivo())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La persona está inactiva: " + persona.getId());
+        }
         if (repo.existsById(persona.getId())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Esa persona ya es sensei");
         }

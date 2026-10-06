@@ -18,8 +18,8 @@ public class AlumnoController {
     }
 
     @GetMapping
-    public List<AlumnoDto> listar() {
-        return service.listar();
+    public List<AlumnoDto> listar(@RequestParam(defaultValue = "false") boolean incluirInactivos) {
+        return service.listar(incluirInactivos);
     }
 
     @GetMapping("/{id}")

@@ -18,8 +18,8 @@ public class SenseiController {
     }
 
     @GetMapping
-    public List<SenseiDto> listar() {
-        return service.listar();
+    public List<SenseiDto> listar(@RequestParam(defaultValue = "false") boolean incluirInactivos) {
+        return service.listar(incluirInactivos);
     }
 
     @GetMapping("/{id}")
