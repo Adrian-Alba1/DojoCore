@@ -53,11 +53,11 @@ public class Horario {
         this.sede = sede;
     }
 
-    public LocalTime getHorainIcio() {
+    public LocalTime getHoraInicio() {
         return horainIcio;
     }
 
-    public void setHorainIcio(LocalTime horainIcio) {
+    public void setHoraInicio(LocalTime horainIcio) {
         this.horainIcio = horainIcio;
     }
 

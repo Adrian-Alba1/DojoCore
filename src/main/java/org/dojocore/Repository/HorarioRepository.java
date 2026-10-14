@@ -16,10 +16,10 @@ public interface HorarioRepository extends JpaRepository<Horario, Integer> {
     List<Horario> findByActivoOrderById(Boolean activo);
 
     @EntityGraph(attributePaths = {"sede", "dias"})
-    List<Horario> findBySedeIdOrderById(Boolean activo);
+    List<Horario> findBySedeIdOrderById(Integer activo);
 
     @EntityGraph(attributePaths = {"sede", "dias"})
-    List<Horario> findBySedeIdAndActivoOrderById(Boolean activo);
+    List<Horario> findBySedeIdAndActivoOrderById(Integer idSede, Boolean activo);
 
     boolean existsBySedeIdAndActivoTrue(Integer idSede);
 }
