@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -124,7 +123,7 @@ public class HorarioService {
         return new ResponseStatusException(HttpStatus.BAD_REQUEST, mensaje);
     }
 
-    private HorarioDto toDto(Horario h){
+    public HorarioDto toDto(Horario h){
         List<DiaSemana> dias = h.getDias().stream()
                 .sorted(Comparator.comparing(DiaSemana::getId))
                 .toList();

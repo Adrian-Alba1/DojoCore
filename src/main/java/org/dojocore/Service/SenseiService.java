@@ -59,7 +59,7 @@ public class SenseiService {
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Sensei no encontrado: " + id));
     }
 
-    private SenseiDto toDto(Sensei s) {
+    public SenseiDto toDto(Sensei s) {
         return new SenseiDto(s.getId(), s.getPersona().getNombre());
     }
 }

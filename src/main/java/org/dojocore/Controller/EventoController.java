@@ -24,7 +24,7 @@ public class EventoController {
         return service.listar(tipo);
     }
 
-    @GetMapping("/{id")
+    @GetMapping("/{id}")
     public EventoDto obtener(@PathVariable Integer id){
         return service.obtener(id);
     }

@@ -31,7 +31,7 @@ public class Horario {
     @Column(nullable = false)
     private boolean activo = true;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "horario_dia",
         joinColumns = @JoinColumn(name = "id_horario"),
         inverseJoinColumns = @JoinColumn(name = "id_dia"))

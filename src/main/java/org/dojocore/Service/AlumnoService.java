@@ -89,7 +89,7 @@ public class AlumnoService {
         return sensei;
     }
 
-    private AlumnoDto toDto(Alumno a){
+    public AlumnoDto toDto(Alumno a){
         Integer idSensei = a.getSenseiPrincipal() != null ? a.getSenseiPrincipal().getId() : null;
         return new AlumnoDto(a.getId(), a.getPersona().getNombre(), a.getFechaIngreso(), idSensei);
     }

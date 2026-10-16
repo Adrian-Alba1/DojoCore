@@ -18,7 +18,7 @@ public class ResultadoEvento {
     @Column(nullable = false, unique = true, length = 30)
     private String nombre;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "resultado_tipo_evento",
             joinColumns = @JoinColumn(name = "id_resultado"),
             inverseJoinColumns = @JoinColumn(name = "id_tipo_evento"))

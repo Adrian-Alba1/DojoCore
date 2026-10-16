@@ -1,28 +1,35 @@
 package org.dojocore.Model;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "alumno")
-    public class Alumno {
+public class Alumno {
 
-        @Id
-        @Column(name = "id_persona")
-        private Integer id;
+    @Id
+    @Column(name = "id_persona")
+    private Integer id;
 
-        @OneToOne(fetch = FetchType.LAZY, optional = false)
-        @MapsId
-        @JoinColumn(name = "id_persona")
-        private Persona persona;
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @MapsId
+    @JoinColumn(name = "id_persona")
+    private Persona persona;
 
-        @Column(name = "fecha_ingreso", nullable = false)
-        private LocalDate fechaIngreso;
+    @Column(name = "fecha_ingreso", nullable = false)
+    private LocalDate fechaIngreso;
 
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "id_sensei_principal")
-        private Sensei senseiPrincipal;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_sensei_principal")
+    private Sensei senseiPrincipal;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "alumno_horario",
+            joinColumns = @JoinColumn(name = "id_alumno"),
+            inverseJoinColumns = @JoinColumn(name = "id_horario"))
+    private Set<Horario> horarios = new HashSet<>();
 
     public Integer getId() {
         return id;
@@ -48,5 +55,6 @@ import java.time.LocalDate;
     public void setSenseiPrincipal(Sensei senseiPrincipal) {
         this.senseiPrincipal = senseiPrincipal;
     }
+    public Set<Horario> getHorarios() { return horarios; }
 }
 
