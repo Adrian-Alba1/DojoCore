@@ -8,4 +8,6 @@ public interface EventoRepository extends JpaRepository<Evento, Integer> {
 
     //filtro por tipo de evento
     List<Evento> findByTipoNombre(String nombre);
+
+    List<Evento> findByEstadoOrderById(String estado);
 }

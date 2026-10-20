@@ -31,6 +31,12 @@ public class Alumno {
             inverseJoinColumns = @JoinColumn(name = "id_horario"))
     private Set<Horario> horarios = new HashSet<>();
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "evento_alumno",
+            joinColumns = @JoinColumn(name = "id_alumno"),
+            inverseJoinColumns = @JoinColumn(name = "id_evento"))
+    private Set<Evento> eventos = new HashSet<>();
+
     public Integer getId() {
         return id;
     }
@@ -56,5 +62,6 @@ public class Alumno {
         this.senseiPrincipal = senseiPrincipal;
     }
     public Set<Horario> getHorarios() { return horarios; }
+    public Set<Evento> getEventos() { return eventos; }
 }
 

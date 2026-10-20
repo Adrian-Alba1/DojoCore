@@ -16,4 +16,12 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Integer> {
     //alumno activo - horarios
     @EntityGraph(attributePaths = {"persona", "senseiPrincipal"})
     List<Alumno> findByHorariosIdAndPersonaActivoOrderById(Integer idHorario, Boolean activo);
+
+    //alumno - evento
+    @EntityGraph(attributePaths = {"persona", "senseiPrincipal"})
+    List<Alumno> findByEventosIdOrderById(Integer idEvento);
+
+    //alumno activo - evento
+    @EntityGraph(attributePaths = {"persona", "senseiPrincipal"})
+    List<Alumno> findByEventosIdAndPersonaActivoOrderById(Integer idEvento, Boolean activo);
 }

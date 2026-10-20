@@ -3,6 +3,7 @@ package org.dojocore.Service;
 import org.dojocore.Dto.EventoDto;
 import org.dojocore.Model.*;
 import org.dojocore.Repository.EventoRepository;
+import org.dojocore.Repository.GradoRepository;
 import org.dojocore.Repository.SenseiRepository;
 import org.dojocore.Repository.TipoEventoRepository;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -10,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
@@ -18,17 +18,20 @@ import java.util.Objects;
 
 @Service
 @Transactional(readOnly = true)
+public class EventoService {
 
-    public class EventoService {
+    private static final String RESTRINGIDO = "RESTRINGIDO";
 
     private final EventoRepository repo;
     private final TipoEventoRepository tipoRepo;
     private final SenseiRepository senseiRepo;
+    private final GradoRepository gradoRepo;
 
-    public EventoService(EventoRepository repo, TipoEventoRepository tipoRepo, SenseiRepository senseiRepo) {
+    public EventoService(EventoRepository repo, TipoEventoRepository tipoRepo, SenseiRepository senseiRepo, GradoRepository gradoRepo) {
         this.repo = repo;
         this.tipoRepo = tipoRepo;
         this.senseiRepo = senseiRepo;
+        this.gradoRepo = gradoRepo;
     }
 
     public List<EventoDto> listar(String tipo) {
@@ -112,6 +115,30 @@ import java.util.Objects;
             }
             c.setTipoCertificacion(dto.tipoCertificacion());
         }
+        aplicarRango(e, dto);
+    }
+
+    private void aplicarRango(Evento e, EventoDto dto) {
+        Grado minimo = resolverGrado(dto.idGradoMinimo());
+        Grado maximo = resolverGrado(dto.idGradoMaximo());
+        if ((minimo != null || maximo != null) && !RESTRINGIDO.equalsIgnoreCase(dto.visibilidad())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "El rango de grados solo aplica a eventos RESTRINGIDO");
+        }
+        if (minimo != null && maximo != null && minimo.getOrden() > maximo.getOrden()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "El grado mínimo no puede ser más alto que el máximo");
+        }
+        e.setGradoMinimo(minimo);
+        e.setGradoMaximo(maximo);
+    }
+
+    private Grado resolverGrado(Integer idGrado) {
+        if (idGrado == null) {
+            return null;
+        }
+        return gradoRepo.findById(idGrado).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.BAD_REQUEST, "Grado no existe: " + idGrado));
     }
 
     private void validarFechas(EventoDto dto) {
@@ -130,7 +157,7 @@ import java.util.Objects;
         return sensei;
     }
 
-    private EventoDto toDto(Evento e) {
+    public EventoDto toDto(Evento e) {
         String tipoCertificacion = e instanceof Certificacion c ? c.getTipoCertificacion() : null;
         return new EventoDto(
                 e.getId(),
@@ -146,6 +173,8 @@ import java.util.Objects;
                 e.getFechaPublicacion(),
                 e.getVisibilidad(),
                 e.getSenseiResponsable().getId(),
-                tipoCertificacion);
+                tipoCertificacion,
+                e.getGradoMinimo() != null ? e.getGradoMinimo().getId() : null,
+                e.getGradoMaximo() != null ? e.getGradoMaximo().getId() : null);
     }
 }

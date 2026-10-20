@@ -4,7 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -23,6 +22,7 @@ public record EventoDto (
         @NotNull LocalDateTime fechaPublicacion,
         @NotBlank @Size(max = 20) String visibilidad,
         @NotNull Integer idSenseiResponsable,
-        @Size(max = 100) String tipoCertificacion
-) {
+        @Size(max = 100) String tipoCertificacion,
+        Integer idGradoMinimo,
+        Integer idGradoMaximo) {
 }
