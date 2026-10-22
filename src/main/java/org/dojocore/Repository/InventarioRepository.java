@@ -16,6 +16,8 @@ public interface InventarioRepository extends JpaRepository<Inventario, Integer>
 
     List<Inventario> findByVarianteActivoOrderByVarianteId(Boolean activo);
 
+    List<Inventario> findAllByOrderByVarianteId();
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select i from Inventario i where i.variante.id = :idVariante")
     Optional<Inventario> buscarParaActualizar(@Param("idVariante") Integer idVariante);
