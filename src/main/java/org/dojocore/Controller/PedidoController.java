@@ -1,10 +1,12 @@
 package org.dojocore.Controller;
 
 import jakarta.validation.Valid;
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.dojocore.Dto.CambioEstadoPedidoDto;
 import org.dojocore.Dto.PedidoCrearDto;
 import org.dojocore.Dto.PedidoDto;
 import org.dojocore.Dto.PedidoItemsDto;
+import org.dojocore.Security.Usuario;
 import org.dojocore.Service.PedidoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -22,18 +24,24 @@ public class PedidoController {
 
     @GetMapping
     public List<PedidoDto> listar(@RequestParam(required = false)Integer idPersona,
-                                  @RequestParam(required = false) String estado){
-        return service.listar(idPersona, estado);
+                                  @RequestParam(required = false) String estado,
+                                  Authentication authentication){
+        Usuario usuario = Usuario.de(authentication);
+        Integer filtro = usuario.personal() ? idPersona : usuario.idPersona();
+        return service.listar(filtro, estado);
     }
 
     @GetMapping("/{id}")
-    public PedidoDto obtener(@PathVariable Integer id){
+    public PedidoDto obtener(@PathVariable Integer id, Authentication authentication){
+        PedidoDto pedido = service.obtener(id);
+        Usuario.de(authentication).exigirAcceso(pedido.idPersona());
         return service.obtener(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public PedidoDto crear(@Valid @RequestBody PedidoCrearDto dto){
+    public PedidoDto crear(@Valid @RequestBody PedidoCrearDto dto, Authentication authentication){
+        Usuario.de(authentication).exigirAcceso(dto.idPersona());
         return service.crear(dto);
     }
 
