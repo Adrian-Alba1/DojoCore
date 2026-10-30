@@ -3,6 +3,9 @@ package org.dojocore.Model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+
+@Entity
+@Table(name = "solicitud_correccion_grado")
 public class SolicitudCorreccionGrado {
 
     @Id

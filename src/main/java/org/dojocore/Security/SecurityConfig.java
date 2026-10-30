@@ -3,6 +3,8 @@ package org.dojocore.Security;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +35,9 @@ public class SecurityConfig {
 
     private static final String[] PERSONAL = {"SENSEI", "SUPERADMIN"};
 
+    private static final Pattern RUTA_PERSONA = Pattern.compile("^/api/(?:alumnos|personas)/(\\d+)(?:/.*)?$");
+    private static final Pattern RUTA_EVENTO_ALUMNO = Pattern.compile("^/api/eventos/\\d+/alumnos/(\\d+)$");
+
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -49,11 +54,11 @@ public class SecurityConfig {
                                 "/api/alumnos/{id}/horarios",
                                 "/api/alumnos/{id}/eventos",
                                 "/api/alumnos/{id}/eventos-disponibles",
-                                "/api/personas/{id}").access(personalOPropio("id"))
+                                "/api/personas/{id}").access(personalOPropio(RUTA_PERSONA))
                         .requestMatchers(HttpMethod.POST, "/api/eventos/{idEvento}/alumnos/{idAlumno}")
-                        .access(personalOPropio("idAlumno"))
+                        .access(personalOPropio(RUTA_EVENTO_ALUMNO))
                         .requestMatchers(HttpMethod.DELETE, "/api/eventos/{idEvento}/alumnos/{idAlumno}")
-                        .access(personalOPropio("idAlumno"))
+                        .access(personalOPropio(RUTA_EVENTO_ALUMNO))
 
                         // Listados con datos de otras personas o de gestion: solo personal
                         .requestMatchers(HttpMethod.GET,
@@ -91,20 +96,21 @@ public class SecurityConfig {
         return http.build();
     }
 
-    private static AuthorizationManager<RequestAuthorizationContext> personalOPropio(String variable) {
+    private static AuthorizationManager<RequestAuthorizationContext> personalOPropio(Pattern ruta) {
         return (Supplier<Authentication> auth, RequestAuthorizationContext contexto) -> {
             Authentication a = auth.get();
             if (Acceso.esPersonal(a)) {
                 return new AuthorizationDecision(true);
             }
             Integer idPersona = Acceso.idPersona(a);
-            String valor = contexto.getVariables().get(variable);
-            return new AuthorizationDecision(idPersona != null && String.valueOf(idPersona).equals(valor));
+            Matcher m = ruta.matcher(contexto.getRequest().getRequestURI());
+            boolean propio = idPersona != null && m.matches() && String.valueOf(idPersona).equals(m.group(1));
+            return new AuthorizationDecision(propio);
         };
     }
 
     @Bean
-    JwtAuthenticationConverter jwtAuthenticationConverter(){
+    JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter authorities = new JwtGrantedAuthoritiesConverter();
         authorities.setAuthoritiesClaimName("roles");
         authorities.setAuthorityPrefix("ROLE_");
@@ -116,24 +122,24 @@ public class SecurityConfig {
     @Bean
     SecretKey jwtKey(@Value("${app.jwt.secret}") String secret) {
         byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
-        if (bytes.length < 32){
-            throw  new IllegalStateException("app.jwt.secret Debe Tener Al Menos 32 caracteres");
+        if (bytes.length < 32) {
+            throw new IllegalStateException("app.jwt.secret debe tener al menos 32 caracteres");
         }
         return new SecretKeySpec(bytes, "HmacSHA256");
     }
 
     @Bean
-    JwtEncoder jwtEncoder(SecretKey jwtKey){
+    JwtEncoder jwtEncoder(SecretKey jwtKey) {
         return new NimbusJwtEncoder(new ImmutableSecret<>(jwtKey));
     }
 
     @Bean
-    JwtDecoder jwtDecoder(SecretKey jwtKey){
+    JwtDecoder jwtDecoder(SecretKey jwtKey) {
         return NimbusJwtDecoder.withSecretKey(jwtKey).macAlgorithm(MacAlgorithm.HS256).build();
     }
 
     @Bean
-    PasswordEncoder passwordEncoder(){
+    PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 }

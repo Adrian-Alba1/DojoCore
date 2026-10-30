@@ -1,7 +1,7 @@
 package org.dojocore.Controller;
 
 import jakarta.validation.Valid;
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
+import org.springframework.security.core.Authentication;
 import org.dojocore.Dto.LoginDto;
 import org.dojocore.Dto.MeDto;
 import org.dojocore.Dto.TokenDto;
@@ -25,6 +25,6 @@ public class AuthController {
 
     @GetMapping("/me")
     public MeDto me(Authentication authentication){
-        return service.me(authentication.name());
+        return service.me(authentication.getName());
     }
 }

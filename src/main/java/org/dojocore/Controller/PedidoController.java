@@ -1,7 +1,7 @@
 package org.dojocore.Controller;
 
 import jakarta.validation.Valid;
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
+import org.springframework.security.core.Authentication;
 import org.dojocore.Dto.CambioEstadoPedidoDto;
 import org.dojocore.Dto.PedidoCrearDto;
 import org.dojocore.Dto.PedidoDto;

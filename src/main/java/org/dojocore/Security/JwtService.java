@@ -9,7 +9,6 @@ import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -34,7 +33,7 @@ public class JwtService {
                 .expiresAt(expira)
                 .subject(cuenta.getUsername())
                 .claim("idCuenta", cuenta.getId())
-                .claim("idCuenta", cuenta.getPersona().getId())
+                .claim("idPersona", cuenta.getPersona().getId())
                 .claim("roles", roles)
                 .build();
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
