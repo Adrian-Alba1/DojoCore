@@ -54,7 +54,8 @@ public class SecurityConfig {
                                 "/api/alumnos/{id}/horarios",
                                 "/api/alumnos/{id}/eventos",
                                 "/api/alumnos/{id}/eventos-disponibles",
-                                "/api/personas/{id}").access(personalOPropio(RUTA_PERSONA))
+                                "/api/personas/{id}",
+                                "/api/personas/{id}/contactos").access(personalOPropio(RUTA_PERSONA))
                         .requestMatchers(HttpMethod.POST, "/api/eventos/{idEvento}/alumnos/{idAlumno}")
                         .access(personalOPropio(RUTA_EVENTO_ALUMNO))
                         .requestMatchers(HttpMethod.DELETE, "/api/eventos/{idEvento}/alumnos/{idAlumno}")
