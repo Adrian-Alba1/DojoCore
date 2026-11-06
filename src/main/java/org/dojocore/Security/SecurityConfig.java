@@ -55,7 +55,8 @@ public class SecurityConfig {
                                 "/api/alumnos/{id}/eventos",
                                 "/api/alumnos/{id}/eventos-disponibles",
                                 "/api/personas/{id}",
-                                "/api/personas/{id}/contactos").access(personalOPropio(RUTA_PERSONA))
+                                "/api/personas/{id}/contactos",
+                                "/api/personas/{id}/historial-grados").access(personalOPropio(RUTA_PERSONA))
                         .requestMatchers(HttpMethod.POST, "/api/eventos/{idEvento}/alumnos/{idAlumno}")
                         .access(personalOPropio(RUTA_EVENTO_ALUMNO))
                         .requestMatchers(HttpMethod.DELETE, "/api/eventos/{idEvento}/alumnos/{idAlumno}")
@@ -79,7 +80,8 @@ public class SecurityConfig {
                                 "/api/grados/**", "/api/tipos-evento/**", "/api/eventos/**",
                                 "/api/categorias/**", "/api/resultados/**", "/api/sedes/**",
                                 "/api/dias/**", "/api/horarios/**", "/api/productos/**",
-                                "/api/variantes/**", "/api/atributos/**", "/api/valores/**").authenticated()
+                                "/api/variantes/**", "/api/atributos/**", "/api/valores/**",
+                                "/api/archivos/**").authenticated()
 
                         .requestMatchers(HttpMethod.GET, "/api/pedidos", "/api/pedidos/{id}").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/pedidos").authenticated()

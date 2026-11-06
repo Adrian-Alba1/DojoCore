@@ -23,19 +23,21 @@ public class ParticipacionEventoService {
     private final CategoriaTorneoRepository categoriaRepo;
     private final ResultadoEventoRepository resultadoRepo;
     private final GradoRepository gradoRepo;
+    private final HistorialGradoRepository historialRepo;
 
     public ParticipacionEventoService(ParticipacionEventoRepository repo,
                                       EventoRepository eventoRepo,
                                       PersonaRepository personaRepo,
                                       CategoriaTorneoRepository categoriaRepo,
                                       ResultadoEventoRepository resultadoRepo,
-                                      GradoRepository gradoRepo) {
+                                      GradoRepository gradoRepo, HistorialGradoRepository historialRepo) {
         this.repo = repo;
         this.eventoRepo = eventoRepo;
         this.personaRepo = personaRepo;
         this.categoriaRepo = categoriaRepo;
         this.resultadoRepo = resultadoRepo;
         this.gradoRepo = gradoRepo;
+        this.historialRepo = historialRepo;
     }
 
     //Filtros opcionales: idEvento y/o idPersona. Sin filtros devuelve todas.
@@ -82,7 +84,11 @@ public class ParticipacionEventoService {
         p.setPersona(persona);
         p.setCategoria(categoria);
         aplicarResultado(p, evento, dto);
-        return toDto(repo.save(p));
+        ParticipacionEvento guardada = repo.save(p);
+        if (p.getGradoNuevo() != null){
+            registrarAscenso(p);
+        }
+        return toDto(guardada);
     }
 
     @Transactional
@@ -95,8 +101,43 @@ public class ParticipacionEventoService {
             throw invalida("No se pueden cambiar el evento, la persona ni la categoría; "
                     + "elimina la participación y crea otra");
         }
+        Integer idAnteriorAntes = p.getGradoAnterior() != null ? p.getGradoAnterior().getId() : null;
+        Integer idNuevoAntes = p.getGradoNuevo() != null ? p.getGradoNuevo().getId() : null;
         aplicarResultado(p, p.getEvento(), dto);
+        boolean habiaAscenso = idNuevoAntes != null;
+        boolean hayAscenso = p.getGradoNuevo() !=null;
+        if (!habiaAscenso && hayAscenso){
+            registrarAscenso(p);
+        }else if (historialRepo.existsByPersonaIdAndIdExamen(p.getPersona().getId(), p.getEvento().getId())
+            && (!hayAscenso
+                || !Objects.equals(idNuevoAntes, p.getGradoNuevo().getId())
+                || !Objects.equals(idAnteriorAntes, p.getGradoAnterior().getId()))){
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "El ascenso de este examen ya quedó registrado en el historial; "
+                            + "no se puede cambiar el resultado ni los grados");
+        }
         return toDto(p);
+    }
+
+    private void registrarAscenso(ParticipacionEvento p){
+        Persona persona = p.getPersona();
+        Grado anterior = p.getGradoAnterior();
+        Grado nuevo = p.getGradoNuevo();
+        Grado actual = persona.getGradoActual();
+        if (actual == null || !actual.getId().equals(anterior.getId())){
+            throw invalida("El Grado Anterior (" + anterior.getNombre() + ") No Coincide Con El Grado Actual De La Persona ("
+                    + (actual !=null ? actual.getNombre() : "Sin Grado") + ")");
+        }
+        if (nuevo.getOrden() <= anterior.getOrden()){
+            throw invalida("El Grado Nuevo Debe Ser Superior Al Anterior");
+        }
+        if (historialRepo.existsByPersonaIdAndIdExamen(persona.getId(), p.getEvento().getId())){
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Ya Hay Un Ascenso Registrado Para Esta Persona En Este Examen");
+        }
+        persona.setGradoActual(nuevo);
+        historialRepo.save(new HistorialGrado(persona, anterior, nuevo, p.getEvento().getId(),
+                p.getEvento().getFechaInicio()));
     }
 
     @Transactional
@@ -109,7 +150,6 @@ public class ParticipacionEventoService {
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Participación no encontrada: " + id));
     }
 
-    /** Torneo: categoría obligatoria y del mismo torneo. Otros eventos: sin categoría. */
     private CategoriaTorneo resolverCategoria(Evento evento, Integer idCategoria) {
         boolean esTorneo = TORNEO.equals(evento.getTipo().getNombre());
         if (!esTorneo) {
@@ -129,7 +169,7 @@ public class ParticipacionEventoService {
         return c;
     }
 
-    /** Valida y asigna resultado, grados y mención. */
+    // signar resultados y menciones
     private void aplicarResultado(ParticipacionEvento p, Evento evento, ParticipacionEventoDto dto) {
         String tipoEvento = evento.getTipo().getNombre();
 
