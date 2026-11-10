@@ -61,4 +61,8 @@ public class ArchivoEvento {
     public void setFechaSubida(LocalDateTime fechaSubida) {
         this.fechaSubida = fechaSubida;
     }
+
+    public boolean esEnlaceExterno(){
+        return ruta != null && (ruta.startsWith("http://") || ruta.startsWith("https://"));
+    }
 }
