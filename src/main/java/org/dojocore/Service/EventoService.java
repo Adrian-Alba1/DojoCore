@@ -2,10 +2,8 @@ package org.dojocore.Service;
 
 import org.dojocore.Dto.EventoDto;
 import org.dojocore.Model.*;
-import org.dojocore.Repository.EventoRepository;
-import org.dojocore.Repository.GradoRepository;
-import org.dojocore.Repository.SenseiRepository;
-import org.dojocore.Repository.TipoEventoRepository;
+import org.dojocore.Repository.*;
+import org.dojocore.Storage.AlmacenArchivos;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,12 +24,18 @@ public class EventoService {
     private final TipoEventoRepository tipoRepo;
     private final SenseiRepository senseiRepo;
     private final GradoRepository gradoRepo;
+    private final ArchivoEventoRepository archivoRepo;
+    private final AlmacenArchivos almacen;
 
-    public EventoService(EventoRepository repo, TipoEventoRepository tipoRepo, SenseiRepository senseiRepo, GradoRepository gradoRepo) {
+    public EventoService(EventoRepository repo, TipoEventoRepository tipoRepo,
+                         SenseiRepository senseiRepo, GradoRepository gradoRepo,
+                         ArchivoEventoRepository archivoRepo, AlmacenArchivos almacen) {
         this.repo = repo;
         this.tipoRepo = tipoRepo;
         this.senseiRepo = senseiRepo;
         this.gradoRepo = gradoRepo;
+        this.archivoRepo = archivoRepo;
+        this.almacen = almacen;
     }
 
     public List<EventoDto> listar(String tipo) {
@@ -74,12 +78,19 @@ public class EventoService {
     @Transactional
     public void eliminar(Integer id) {
         Evento e = buscar(id);
+
+        List<String> clavesDeArchivos = archivoRepo.findByEventoIdOrderById(id).stream()
+                .filter(a -> !a.esEnlaceExterno())
+                .map(ArchivoEvento::getRuta)
+                .toList();
         try {
             repo.delete(e);
             repo.flush();
         } catch (DataIntegrityViolationException ex) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "El Evento Tiene Registros Relacionados y No Se Puede Eliminar");
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "El evento tiene registros relacionados y no se puede eliminar");
         }
+        clavesDeArchivos.forEach(almacen::eliminar);
     }
 
     private Evento buscar(Integer id){
