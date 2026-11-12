@@ -33,7 +33,7 @@ import java.util.Set;
 public class ArchivoEventoService {
 
     private static final String RESTRINGIDO = "RESTRINGIDO";
-    public static final Set<String> TIPOS_CON_VISTA = Set.of("PDF", "IMAGEN", "VIDEO", "AUDIO");
+    private static final Set<String> TIPOS_CON_VISTA = Set.of("PDF", "IMAGEN", "VIDEO", "AUDIO");
 
     private final ArchivoEventoRepository repo;
     private final EventoRepository eventoRepo;
